@@ -42,7 +42,7 @@ void usuariocadastrado(char* novo_user,  char* nova_senha){
 
             if(strcmp(senha, nova_senha) == 0){
                 printf("\nOla %s. Bem-vindo ao menu inicial da Eco Solution!\n", user);
-                break;
+                menuinicial();
 
             }else{
                 printf("\nSenha incorreta. Tente novamente");
@@ -80,4 +80,32 @@ void cadastrarusuario(){
     }while(strlen(novo_user) != 0 && strlen(nova_senha) != 0);
 
     usuariocadastrado(novo_user, nova_senha);
+}
+
+void menuinicial(){
+    int opcao = 0;
+
+    do{
+        printf("\n\nSelecione a opcao que deseja acessar: \n1-Gerar Relatorios \n2-Cadastrar uma nova empresa \n3-Cadastrar um novo funcionario\n");
+        scanf("%d", &opcao);
+
+        //verifica qual opcao o usuario escolher
+        switch(opcao){
+        case 1:
+            printf("Opcao para gerar relatorios");
+            //gerarelat();
+            break;
+        case 2:
+            printf("Opcao para cadastrar empresas");
+            //cadastraemp();
+            break;
+        case 3:
+            printf("Opcao para cadastrar funcionarios");
+            //cadastrafunc();
+            break;
+        default:
+            printf("Opcao invalida. Tente novamente!");
+            break;
+        }
+    }while(opcao < 1 || opcao > 3); //loop ate escolher valor entre 1 e 3
 }
