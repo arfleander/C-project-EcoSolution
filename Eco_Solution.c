@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+/*** cria estrutura Empresa para armazenar os dados das empresas ***/
 typedef struct empresa{
         char nome_legal[31];
         char responsavel[51];
@@ -18,16 +19,35 @@ typedef struct empresa{
         int ano;
         struct empresa *proximo;
 }Empresa;
-/*** cria estrutura Empresa para armazenar os dados da empresa ***/
 
-Empresa* empresas = NULL;
+/*** cria estrutura Funcionario para armazenar os dados dos funcionarios ***/
+typedef struct funcionario{
+    char empresa_respon[31];
+    int CNPJ;
+    char nome[31];
+    char sobrenome[21];
+    char data_nasc[11];
+    int CPF;
+    char RG[11];
+    char genero[11];
+    char email[41];
+    char estado_civil[10];
+    int renda;
+    char rua[51];
+    int numero;
+    char bairro[31];
+    char cidade[16];
+    char pais[11];
+    struct funcionario *proximo;
+}Funcionario;
+
 /*** inicializa a estrutura Empresa vazia ***/
+Empresa* empresas = NULL;
 
-void main(){
-    menuinicial();
-    liberar_empresas(&empresas);
-}
+/*** inicializa a estrutura Funcionario vazia ***/
+Funcionario* funcionarios = NULL;
 
+/*** funcao para usuario acessar no sistema ***/
 void login(){
     char autent;
 
@@ -51,6 +71,7 @@ void login(){
     }while(autent != 'S' && autent != 'N');
 }
 
+/*** funcao para usuario ja cadastrado entrar no sistema ***/
 void usuariocadastrado(char* novo_user,  char* nova_senha){
     char user[31], senha[21];
 
@@ -77,6 +98,7 @@ void usuariocadastrado(char* novo_user,  char* nova_senha){
     }while(1);
 }
 
+/*** funcao para cadastrar novo usuario ***/
 void cadastrarusuario(){
     char novo_user[31], nova_senha[21];
 
@@ -104,6 +126,7 @@ void cadastrarusuario(){
     usuariocadastrado(novo_user, nova_senha);
 }
 
+/*** funcao para menu principal para acessar o sistema ***/
 void menuinicial(){
     int opcao = 0, escolha = 0;
 
@@ -129,8 +152,7 @@ void menuinicial(){
             insereemp(&empresas);
             break;
         case 3:
-            printf("Opcao para cadastrar funcionarios");
-            //cadastrafunc();
+            inserefunc(&funcionarios);
             break;
         default:
             printf("Opcao invalida. Tente novamente!");
@@ -139,6 +161,7 @@ void menuinicial(){
     }while(opcao < 1 || opcao > 3); //loop ate escolher valor entre 1 e 3
 }
 
+/*** funcao para cadastrar novas empresas ***/
 void insereemp(Empresa **empresas){
 
     char nomel[31], respon[51], nomef[16], email_emp[41], rua_emp[51], bairro_emp[31], cidade_emp[16], pais_emp[11];
@@ -230,7 +253,118 @@ void insereemp(Empresa **empresas){
     menuinicial();
 }
 
-/*** funcao para liberar a memoria alocada quando nao necessitar mais dela ***/
+/** funcao para cadastrar novos funcionarios ***/
+void inserefunc(Funcionario **funcionarios){
+    char empresa_responsavel[31], nome_func[31], sobrenome_func[21], data_nascimento[11], rg[11], genero_func[11], email_func[41], estado_func[10], rua_func[51], bairro_func[31], cidade_func[16], pais_func[11];
+    int cnpj, cpf, renda_func, numero_func;
+    /*** cria variaveis auxiliares para armazenar os valores ***/
+
+    Funcionario* novo_funcionario = malloc(sizeof(Funcionario));
+    /*** aloca espaço na memória para a estrutura ***/
+
+    printf("\n\nCadastro de novo Funcionario!\n");
+
+    printf("\nEmpresa responsavel: ");
+    scanf("%30s", empresa_responsavel);
+    strncpy(novo_funcionario->empresa_respon, empresa_responsavel, sizeof(novo_funcionario->empresa_respon) - 1);
+    novo_funcionario->empresa_respon[sizeof(novo_funcionario->empresa_respon) - 1] = '\0';
+
+    printf("\nCNPJ da empresa: ");
+    scanf("%14d", &cnpj);
+
+    novo_funcionario->CNPJ = cnpj;
+
+    printf("\nNome: ");
+    scanf("%30s", nome_func);
+    strncpy(novo_funcionario->nome, nome_func, sizeof(novo_funcionario->nome) - 1);
+    novo_funcionario->nome[sizeof(novo_funcionario->nome) - 1] = '\0';
+
+    printf("\nSobrenome: ");
+    scanf("%20s", sobrenome_func);
+    strncpy(novo_funcionario->sobrenome, sobrenome_func, sizeof(novo_funcionario->sobrenome) - 1);
+    novo_funcionario->sobrenome[sizeof(novo_funcionario->sobrenome) - 1] = '\0';
+
+    printf("\nCPF: ");
+    scanf("%11d", &cpf);
+
+    novo_funcionario->CPF = cpf;
+
+    printf("\nRG: ");
+    scanf("%10s", rg);
+
+    strncpy(novo_funcionario->RG, rg, sizeof(novo_funcionario->RG) - 1);
+    novo_funcionario->RG[sizeof(novo_funcionario->RG) - 1] = '\0';
+
+    printf("\nData de Nascimento (DD/MM/AAAA): ");
+    scanf("%10s", data_nascimento);
+
+    strncpy(novo_funcionario->data_nasc, data_nascimento, sizeof(novo_funcionario->data_nasc) - 1);
+    novo_funcionario->data_nasc[sizeof(novo_funcionario->data_nasc) - 1] = '\0';
+
+    printf("\nGenero: ");
+    scanf("%10s", genero_func);
+
+    strncpy(novo_funcionario->genero, genero_func, sizeof(novo_funcionario->genero) - 1);
+    novo_funcionario->genero[sizeof(novo_funcionario->genero) - 1] = '\0';
+
+    printf("\nEmail: ");
+    scanf("%40s", email_func);
+
+    strncpy(novo_funcionario->email, email_func, sizeof(novo_funcionario->email) - 1);
+    novo_funcionario->email[sizeof(novo_funcionario->email) - 1] = '\0';
+
+    printf("\nEstado Civil: ");
+    scanf("%9s", estado_func);
+
+    strncpy(novo_funcionario->estado_civil, estado_func, sizeof(novo_funcionario->estado_civil) - 1);
+    novo_funcionario->estado_civil[sizeof(novo_funcionario->estado_civil) - 1] = '\0';
+
+    printf("\nRenda mensal: ");
+    scanf("%d", &renda_func);
+
+    novo_funcionario->renda = renda_func;
+
+    printf("\nRua: ");
+    scanf("%50s", rua_func);
+
+    strncpy(novo_funcionario->rua, rua_func, sizeof(novo_funcionario->rua) - 1);
+    novo_funcionario->rua[sizeof(novo_funcionario->rua) - 1] = '\0';
+
+    printf("\nNumero: ");
+    scanf("%4d", &numero_func);
+
+    novo_funcionario->numero = numero_func;
+
+    printf("\nBairro: ");
+    scanf("%30s", bairro_func);
+
+    strncpy(novo_funcionario->bairro, bairro_func, sizeof(novo_funcionario->bairro) - 1);
+    novo_funcionario->bairro[sizeof(novo_funcionario->bairro) - 1] = '\0';
+
+    printf("\nCidade: ");
+    scanf("%15s", cidade_func);
+
+    strncpy(novo_funcionario->cidade, cidade_func, sizeof(novo_funcionario->cidade) - 1);
+    novo_funcionario->cidade[sizeof(novo_funcionario->cidade) - 1] = '\0';
+
+    printf("\nPais: ");
+    scanf("%10s", pais_func);
+
+    strncpy(novo_funcionario->pais, pais_func, sizeof(novo_funcionario->pais) - 1);
+    novo_funcionario->pais[sizeof(novo_funcionario->pais) - 1] = '\0';
+
+
+    novo_funcionario->proximo = *funcionarios;
+    *funcionarios = novo_funcionario;
+    /*** esta adicionando a novo_funcionario no inicio da lista
+    qualquer funcionario anterior a novo_funcionario esta agora acessivel atraves do ponteiro proximo ***/
+
+    printf("\nCadastro concluido com sucesso!!");
+
+    menuinicial();
+
+}
+/*** funcao para liberar a memoria alocada por Empresa quando nao necessitar mais dela ***/
 void liberar_empresas(Empresa *empresas) {
     while (empresas != NULL) {
         Empresa *temporaria = empresas;
@@ -242,3 +376,17 @@ void liberar_empresas(Empresa *empresas) {
     }
 }
 
+/*** funcao para liberar a memoria alocada por Funcionario quando nao necessitar mais dela ***/
+void liberar_funcionarios(Funcionario *funcionarios) {
+    while (funcionarios != NULL) {
+        Funcionario *temporaria = funcionarios;
+        funcionarios = funcionarios->proximo;
+        free(temporaria);
+    }
+}
+
+void main(){
+    menuinicial();
+    liberar_empresas(&empresas);
+    liberar_funcionarios(&funcionarios);
+}
