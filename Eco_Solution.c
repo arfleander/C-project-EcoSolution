@@ -41,11 +41,24 @@ typedef struct funcionario{
     struct funcionario *proximo;
 }Funcionario;
 
+/*** cria estrutura Residuos para armazenar os dados dos residuos ambientais ***/
+typedef struct residuo{
+    char empresa_respon[31];
+    int CNPJ;
+    char nome[21];
+    int id;
+    float valor_custo;
+    struct residuo *proximo;
+}Residuo;
+
 /*** inicializa a estrutura Empresa vazia ***/
 Empresa* empresas = NULL;
 
 /*** inicializa a estrutura Funcionario vazia ***/
 Funcionario* funcionarios = NULL;
+
+/*** inicializa a estrutura Residuos vazia ***/
+Residuo* residuos = NULL;
 
 /*** funcao para usuario acessar no sistema ***/
 void login(){
@@ -83,9 +96,9 @@ void usuariocadastrado(char* novo_user,  char* nova_senha){
             printf("\nDigite sua senha (max 20): ");
             scanf("%20s", senha);
 
-            if(strcmp(senha, nova_senha) == 0){
-                printf("\nOla %s. Bem-vindo ao menu inicial da Eco Solution!\n", user);
-                menuinicial();
+            if(strcmp(senha, nova_senha) == 0 && senha != ""){
+                printf("\n\nOla %s. Bem-vindo ao menu inicial da Eco Solution!\n", user);
+                menuprincipal();
 
             }else{
                 printf("\nSenha incorreta. Tente novamente");
@@ -127,35 +140,25 @@ void cadastrarusuario(){
 }
 
 /*** funcao para menu principal para acessar o sistema ***/
-void menuinicial(){
+void menuprincipal(){
     int opcao = 0, escolha = 0;
 
     do{
-        printf("\n\nSelecione a opcao que deseja acessar: \n1-Gerar Relatorios \n2-Cadastrar uma nova empresa \n3-Cadastrar um novo funcionario\n");
+        printf("\nSelecione a opcao que deseja acessar: \n1-Cadastrar uma nova empresa \n2-Cadastrar um novo funcionario \n3-Cadastrar novo residuo \n4-Atualizar residuos \n5-Gerar relatorio de total de insumos \n6-Gerar relatorio de gastos mensais \n7-Localizar regioes mais poluidas \n8-Localizar industrias menos impactam \n9-Sair\n");
         scanf("%d", &opcao);
 
         /*** verifica qual opcao o usuario escolher ***/
         switch(opcao){
         case 1:
-            printf("Opcao para gerar relatorios");
-            switch(escolha){
-            case 1:
-                printf("Relatários de faturamento");
-                break;
-            case 2:
-                printf("Relatórios de movimentação");
-                break;
-            default:
-                printf("Opcao invalida! Tente novamente");
-            }
-        case 2:
             insereemp(&empresas);
             break;
-        case 3:
+        case 2:
             inserefunc(&funcionarios);
             break;
+        case 3:
+            insereresiduo(&residuos);
         default:
-            printf("Opcao invalida. Tente novamente!");
+            printf("\nOpcao invalida. Tente novamente!\n");
             break;
         }
     }while(opcao < 1 || opcao > 3); //loop ate escolher valor entre 1 e 3
@@ -250,7 +253,7 @@ void insereemp(Empresa **empresas){
 
     printf("\nCadastro concluido com sucesso!!");
 
-    menuinicial();
+    menuprincipal();
 }
 
 /** funcao para cadastrar novos funcionarios ***/
@@ -342,7 +345,8 @@ void inserefunc(Funcionario **funcionarios){
     novo_funcionario->bairro[sizeof(novo_funcionario->bairro) - 1] = '\0';
 
     printf("\nCidade: ");
-    scanf("%15s", cidade_func);
+    scanf("%15s[^\n]", cidade_func);
+    while (getchar() != '\n');
 
     strncpy(novo_funcionario->cidade, cidade_func, sizeof(novo_funcionario->cidade) - 1);
     novo_funcionario->cidade[sizeof(novo_funcionario->cidade) - 1] = '\0';
@@ -361,9 +365,59 @@ void inserefunc(Funcionario **funcionarios){
 
     printf("\nCadastro concluido com sucesso!!");
 
-    menuinicial();
+    menuprincipal();
 
 }
+
+/*** funcao para cadastrar novos residuos ambientais ***/
+void insereresiduo(Residuo **residuos){
+
+    char responsavel[31], nome_residuo[21];
+    int cnpj, id_residuo;
+    float valor_residuo;
+    /*** cria variaveis auxiliares para armazenar os valores ***/
+
+    Residuo* novo_residuo = malloc(sizeof(Residuo));
+    /*** aloca espaço na memória para a estrutura ***/
+
+    printf("\n\nCadastro de novo Residuo!\n");
+
+    printf("\nEmpresa responsavel: ");
+    scanf("%30s", responsavel);
+
+    strncpy(novo_residuo->empresa_respon, responsavel, sizeof(novo_residuo->empresa_respon) - 1);
+    novo_residuo->empresa_respon[sizeof(novo_residuo->empresa_respon) - 1] = '\0';
+
+    printf("\nCNPJ da empresa: ");
+    scanf("%14d", &cnpj);
+
+    novo_residuo->CNPJ = cnpj;
+
+    printf("\nNome do residuo: ");
+    scanf("%30s", nome_residuo);
+
+    strncpy(novo_residuo->nome, nome_residuo, sizeof(novo_residuo->nome) - 1);
+    novo_residuo->nome[sizeof(novo_residuo->nome) - 1] = '\0';
+
+    printf("\nID do Residuo: ");
+    scanf("%d", &id_residuo);
+
+    novo_residuo->id = id_residuo;
+
+    printf("\nValor estimado de custo: ");
+    scanf("%f", &valor_residuo);
+
+    novo_residuo->proximo = *residuos;
+    *residuos = novo_residuo;
+    /*** esta adicionando a novo_residuo no inicio da lista
+    qualquer residuo anterior a novo_residuo esta agora acessivel atraves do ponteiro proximo ***/
+
+    printf("\nCadastro concluido com sucesso!!");
+
+    menuprincipal();
+}
+
+
 /*** funcao para liberar a memoria alocada por Empresa quando nao necessitar mais dela ***/
 void liberar_empresas(Empresa *empresas) {
     while (empresas != NULL) {
@@ -385,8 +439,19 @@ void liberar_funcionarios(Funcionario *funcionarios) {
     }
 }
 
+/*** funcao para liberar a memoria alocada por Residuo quando nao necessitar mais dela ***/
+void liberar_residuos(Residuo *residuos) {
+    while (residuos != NULL) {
+        Residuo *temporaria = residuos;
+        residuos = residuos->proximo;
+        free(temporaria);
+    }
+}
+
+
 void main(){
-    menuinicial();
+    login();
     liberar_empresas(&empresas);
     liberar_funcionarios(&funcionarios);
+    liberar_residuos(&residuos);
 }
