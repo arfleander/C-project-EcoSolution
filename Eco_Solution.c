@@ -41,6 +41,14 @@ typedef struct funcionario{
     struct funcionario *proximo;
 }Funcionario;
 
+/*** cria estrutura DadosResiduos para armazenar o historico dos residuos ambientais ***/
+typedef struct dadosresiduos{
+    int mes;
+    int ano;
+    int qtde;
+    struct dadosresiduos *proximo;
+}DadosResiduos;
+
 /*** cria estrutura Residuos para armazenar os dados dos residuos ambientais ***/
 typedef struct residuo{
     char empresa_respon[31];
@@ -48,6 +56,7 @@ typedef struct residuo{
     char nome[21];
     int id;
     float valor_custo;
+    DadosResiduos *historico;
     struct residuo *proximo;
 }Residuo;
 
@@ -59,6 +68,12 @@ Funcionario* funcionarios = NULL;
 
 /*** inicializa a estrutura Residuos vazia ***/
 Residuo* residuos = NULL;
+
+/*** inicializa a estrutura DadosResiduos vazia ***/
+DadosResiduos* historico_residuos = NULL;
+
+/** prototipo para a funcao atualizaresiduo ***/
+Residuo* atualizaresiduo(Residuo **residuos, DadosResiduos **historico_residuos);
 
 /*** funcao para usuario acessar no sistema ***/
 void login(){
@@ -157,6 +172,8 @@ void menuprincipal(){
             break;
         case 3:
             insereresiduo(&residuos);
+        case 4:
+            atualizaresiduo(&residuos, &historico_residuos);
         default:
             printf("\nOpcao invalida. Tente novamente!\n");
             break;
@@ -417,6 +434,51 @@ void insereresiduo(Residuo **residuos){
     menuprincipal();
 }
 
+/*** funcao para buscar ID em Residuo e cadastra novos dados em DadosResiduos ***/
+Residuo* atualizaresiduo(Residuo **residuos, DadosResiduos **historico_residuos){
+    int id_busca, mes_historico, ano_historico, qtde_historico;
+
+    printf("\nAtualizar residuos\n");
+
+    printf("Digite o ID de residuo para buscar: ");
+    scanf("%d", &id_busca);
+
+    Residuo* aux; /*** variável auxiliar para percorrer a lista residuos ***/
+
+    /*** cbusca o item na lista residuos ***/
+    for(aux = *residuos; aux != NULL; aux = aux->proximo){
+        if(aux->id == id_busca){ /*** verifica se o item é correspondente ***/
+           DadosResiduos *atualiza_residuo = malloc(sizeof(DadosResiduos));
+
+            printf("\nDigite a data da atualizacao (MM/AAAA): ");
+            scanf("%2d/%4d", &mes_historico, &ano_historico);
+
+            atualiza_residuo->mes = mes_historico;
+            atualiza_residuo->ano = ano_historico;
+
+            printf("\nDigite a quantidade de residuos: ");
+            scanf("%d", &qtde_historico);
+
+            atualiza_residuo->qtde = qtde_historico;
+
+            /*** definindo a variavel proximo da DadoResiduos como apontando para o historico existente de Residuo
+            garantindo que o novo registro de historicos seja vinculado ao registro existente ***/
+            atualiza_residuo->proximo = aux->historico;
+            /*** atualizando o campo historico de Residuo para apontar para o novo registro de historico atualiza_residuo
+            feito para refletir a atualizacao do historico na estrutura principal Residuo ***/
+            aux->historico = atualiza_residuo;
+
+            printf("\nAtualizacao de residuo cadastrada com sucesso!!\n");
+            return aux;
+        }
+    }
+
+    printf("ID de residuos nao encontrado! Tente novamente");
+    menuprincipal();
+    return NULL; /*** retorna lista vazia caso nao encontre o ID ***/
+
+
+}
 
 /*** funcao para liberar a memoria alocada por Empresa quando nao necessitar mais dela ***/
 void liberar_empresas(Empresa *empresas) {
@@ -448,10 +510,20 @@ void liberar_residuos(Residuo *residuos) {
     }
 }
 
+/*** funcao para liberar a memoria alocada por DadosResiduos quando nao necessitar mais dela ***/
+void liberar_dadosresiduos(DadosResiduos *historico_residuos) {
+    while (historico_residuos != NULL) {
+        DadosResiduos *temporaria = historico_residuos;
+        historico_residuos = historico_residuos->proximo;
+        free(temporaria);
+    }
+}
+
 
 void main(){
     login();
     liberar_empresas(&empresas);
     liberar_funcionarios(&funcionarios);
     liberar_residuos(&residuos);
+    liberar_dadosresiduos(&historico_residuos);
 }
