@@ -3,22 +3,25 @@
 #include <string.h>
 #include <stdlib.h>
 
-/*** cria estrutura Empresa para armazenar os dados das empresas ***/
-typedef struct empresa{
-        char nome_legal[31];
-        char responsavel[51];
-        int CNPJ;
-        char nome_fantasia[16];
-        char email[41];
-        char rua[51];
-        int numero;
-        char bairro[31];
-        char cidade[16];
-        char pais[11];
-        int mes;
-        int ano;
-        struct empresa *proximo;
-}Empresa;
+/*** cria estrutura DadosResiduos para armazenar o historico dos residuos ambientais ***/
+typedef struct dadosresiduos{
+    int id_residuos;
+    int mes;
+    int ano;
+    int qtde;
+    struct dadosresiduos *proximo;
+}DadosResiduos;
+
+/*** cria estrutura Residuos para armazenar os dados dos residuos ambientais ***/
+typedef struct residuo{
+    char empresa_respon[31];
+    int CNPJ;
+    char nome[21];
+    int id;
+    float valor_custo;
+    DadosResiduos *historico;
+    struct residuo *proximo;
+}Residuo;
 
 /*** cria estrutura Funcionario para armazenar os dados dos funcionarios ***/
 typedef struct funcionario{
@@ -41,24 +44,24 @@ typedef struct funcionario{
     struct funcionario *proximo;
 }Funcionario;
 
-/*** cria estrutura DadosResiduos para armazenar o historico dos residuos ambientais ***/
-typedef struct dadosresiduos{
-    int mes;
-    int ano;
-    int qtde;
-    struct dadosresiduos *proximo;
-}DadosResiduos;
-
-/*** cria estrutura Residuos para armazenar os dados dos residuos ambientais ***/
-typedef struct residuo{
-    char empresa_respon[31];
-    int CNPJ;
-    char nome[21];
-    int id;
-    float valor_custo;
-    DadosResiduos *historico;
-    struct residuo *proximo;
-}Residuo;
+/*** cria estrutura Empresa para armazenar os dados das empresas ***/
+typedef struct empresa{
+        char nome_legal[31];
+        char responsavel[51];
+        int CNPJ;
+        char nome_fantasia[16];
+        char email[41];
+        char rua[51];
+        int numero;
+        char bairro[31];
+        char cidade[16];
+        char pais[11];
+        int mes;
+        int ano;
+        Residuo *historico_residuo;
+        Funcionario *historico_funcionario;
+        struct empresa *proximo;
+}Empresa;
 
 /*** inicializa a estrutura Empresa vazia ***/
 Empresa* empresas = NULL;
@@ -74,6 +77,10 @@ DadosResiduos* historico_residuos = NULL;
 
 /** prototipo para a funcao atualizaresiduo ***/
 Residuo* atualizaresiduo(Residuo **residuos, DadosResiduos **historico_residuos);
+
+/** prototipo para a funcao gerenciarresiduos ***/
+Empresa* gerenciarresiduos(Empresa **empresas, DadosResiduos **historico_residuos, Residuo **residuos);
+
 
 /*** funcao para usuario acessar no sistema ***/
 void login(){
@@ -159,7 +166,7 @@ void menuprincipal(){
     int opcao = 0, escolha = 0;
 
     do{
-        printf("\nSelecione a opcao que deseja acessar: \n1-Cadastrar uma nova empresa \n2-Cadastrar um novo funcionario \n3-Cadastrar novo residuo \n4-Atualizar residuos \n5-Gerar relatorio de total de insumos \n6-Gerar relatorio de gastos mensais \n7-Localizar regioes mais poluidas \n8-Localizar industrias menos impactam \n9-Sair\n");
+        printf("\nSelecione a opcao que deseja acessar: \n1-Cadastrar uma nova empresa \n2-Cadastrar um novo funcionario \n3-Cadastrar novo residuo \n4-Atualizar residuos \n5-Gerar relatorio de total de residuos por empresa \n6-Gerar relatorio de gastos mensais \n7-Localizar regioes mais poluidas \n8-Localizar industrias menos impactam \n9-Sair\n");
         scanf("%d", &opcao);
 
         /*** verifica qual opcao o usuario escolher ***/
@@ -168,12 +175,17 @@ void menuprincipal(){
             insereemp(&empresas);
             break;
         case 2:
-            inserefunc(&funcionarios);
+            inserefunc(&funcionarios, &empresas);
             break;
         case 3:
-            insereresiduo(&residuos);
+            insereresiduo(&residuos, &empresas);
+            break;
         case 4:
             atualizaresiduo(&residuos, &historico_residuos);
+            break;
+        case 5:
+            gerenciarresiduos(&empresas, &historico_residuos, &residuos);
+            break;
         default:
             printf("\nOpcao invalida. Tente novamente!\n");
             break;
@@ -268,16 +280,18 @@ void insereemp(Empresa **empresas){
     /*** esta adicionando a nova_empresa no inicio da lista
     qualquer empresa anterior à nova_empresa esta agora acessivel atraves do ponteiro proximo ***/
 
-    printf("\nCadastro concluido com sucesso!!");
+    printf("\nCadastro concluido com sucesso!!\n");
 
     menuprincipal();
 }
 
 /** funcao para cadastrar novos funcionarios ***/
-void inserefunc(Funcionario **funcionarios){
+void inserefunc(Funcionario **funcionarios, Empresa **empresas){
     char empresa_responsavel[31], nome_func[31], sobrenome_func[21], data_nascimento[11], rg[11], genero_func[11], email_func[41], estado_func[10], rua_func[51], bairro_func[31], cidade_func[16], pais_func[11];
     int cnpj, cpf, renda_func, numero_func;
     /*** cria variaveis auxiliares para armazenar os valores ***/
+
+    Empresa *aux; /** variavel auxiliar para percorrer a lista empresa **/
 
     Funcionario* novo_funcionario = malloc(sizeof(Funcionario));
     /*** aloca espaço na memória para a estrutura ***/
@@ -289,10 +303,23 @@ void inserefunc(Funcionario **funcionarios){
     strncpy(novo_funcionario->empresa_respon, empresa_responsavel, sizeof(novo_funcionario->empresa_respon) - 1);
     novo_funcionario->empresa_respon[sizeof(novo_funcionario->empresa_respon) - 1] = '\0';
 
-    printf("\nCNPJ da empresa: ");
-    scanf("%14d", &cnpj);
+    /** repete ate que encontre o CNPJ inserido esteja na lista empresas **/
+    do{
+        printf("\nCNPJ da empresa: ");
+        scanf("%14d", &cnpj);
 
-    novo_funcionario->CNPJ = cnpj;
+        /** busca na lista empresas **/
+        for(aux = *empresas; aux != NULL; aux = aux->proximo){
+            /** verifica se o valor é correspondente ao que está na lista empresas **/
+            if(aux->CNPJ == cnpj){
+                novo_funcionario->CNPJ = cnpj;
+                cnpj = (*empresas)->CNPJ; /** vincula o CNPJ do residuo ao CNPJ da empresa **/
+                break;
+            }else{
+                printf("\nCNPJ nao cadastrado! Tente novamente\n");
+            }
+        }
+    }while(aux == NULL);
 
     printf("\nNome: ");
     scanf("%30s", nome_func);
@@ -375,24 +402,25 @@ void inserefunc(Funcionario **funcionarios){
     novo_funcionario->pais[sizeof(novo_funcionario->pais) - 1] = '\0';
 
 
-    novo_funcionario->proximo = *funcionarios;
-    *funcionarios = novo_funcionario;
-    /*** esta adicionando a novo_funcionario no inicio da lista
-    qualquer funcionario anterior a novo_funcionario esta agora acessivel atraves do ponteiro proximo ***/
+    novo_funcionario->proximo = (*empresas)->historico_funcionario;/** vincula o historico do funcionario ao historico da empresa **/
+    (*empresas)->historico_funcionario = novo_funcionario; /** atualiza o historico da empresa para apontar para o novo funcionario **/
 
-    printf("\nCadastro concluido com sucesso!!");
+
+    printf("\nCadastro concluido com sucesso!!\n");
 
     menuprincipal();
 
 }
 
 /*** funcao para cadastrar novos residuos ambientais ***/
-void insereresiduo(Residuo **residuos){
+void insereresiduo(Residuo **residuos, Empresa **empresas){
 
+    /*** cria variaveis auxiliares para armazenar os valores ***/
     char responsavel[31], nome_residuo[21];
     int cnpj, id_residuo;
     float valor_residuo;
-    /*** cria variaveis auxiliares para armazenar os valores ***/
+
+    Empresa *aux; /** variavel auxiliar para percorrer a lista empresa **/
 
     Residuo* novo_residuo = malloc(sizeof(Residuo));
     /*** aloca espaço na memória para a estrutura ***/
@@ -405,10 +433,23 @@ void insereresiduo(Residuo **residuos){
     strncpy(novo_residuo->empresa_respon, responsavel, sizeof(novo_residuo->empresa_respon) - 1);
     novo_residuo->empresa_respon[sizeof(novo_residuo->empresa_respon) - 1] = '\0';
 
-    printf("\nCNPJ da empresa: ");
-    scanf("%14d", &cnpj);
+    /** repete ate que encontre o CNPJ inserido esteja na lista empresas **/
+    do{
+        printf("\nCNPJ da empresa: ");
+        scanf("%14d", &cnpj);
 
-    novo_residuo->CNPJ = cnpj;
+        /** busca na lista empresas **/
+        for(aux = *empresas; aux != NULL; aux = aux->proximo){
+            /** verifica se o valor é correspondente ao que está na lista empresas **/
+            if(aux->CNPJ == cnpj){
+                novo_residuo->CNPJ = cnpj;
+                cnpj = (*empresas)->CNPJ; /** vincula o CNPJ do residuo ao CNPJ da empresa **/
+                break;
+            }else{
+                printf("\nCNPJ nao cadastrado! Tente novamente\n");
+            }
+        }
+    }while(aux == NULL);
 
     printf("\nNome do residuo: ");
     scanf("%30s", nome_residuo);
@@ -424,12 +465,10 @@ void insereresiduo(Residuo **residuos){
     printf("\nValor estimado de custo: ");
     scanf("%f", &valor_residuo);
 
-    novo_residuo->proximo = *residuos;
-    *residuos = novo_residuo;
-    /*** esta adicionando a novo_residuo no inicio da lista
-    qualquer residuo anterior a novo_residuo esta agora acessivel atraves do ponteiro proximo ***/
+    novo_residuo->proximo = (*empresas)->historico_residuo;/** vincula o historico do funcionario ao historico da empresa **/
+    (*empresas)->historico_residuo = novo_residuo; /** atualiza o historico da empresa para apontar para o novo funcionario **/
 
-    printf("\nCadastro concluido com sucesso!!");
+    printf("\nCadastro concluido com sucesso!!\n");
 
     menuprincipal();
 }
@@ -445,10 +484,13 @@ Residuo* atualizaresiduo(Residuo **residuos, DadosResiduos **historico_residuos)
 
     Residuo* aux; /*** variável auxiliar para percorrer a lista residuos ***/
 
-    /*** cbusca o item na lista residuos ***/
+    /*** busca o item na lista residuos ***/
     for(aux = *residuos; aux != NULL; aux = aux->proximo){
         if(aux->id == id_busca){ /*** verifica se o item é correspondente ***/
-           DadosResiduos *atualiza_residuo = malloc(sizeof(DadosResiduos));
+
+            DadosResiduos *atualiza_residuo = malloc(sizeof(DadosResiduos));
+
+            atualiza_residuo->id_residuos = id_busca;
 
             printf("\nDigite a data da atualizacao (MM/AAAA): ");
             scanf("%2d/%4d", &mes_historico, &ano_historico);
@@ -478,6 +520,56 @@ Residuo* atualizaresiduo(Residuo **residuos, DadosResiduos **historico_residuos)
     return NULL; /*** retorna lista vazia caso nao encontre o ID ***/
 
 
+}
+
+/** funcao para gerar relatorios de total de residuos por empresa e ID **/
+Empresa* gerenciarresiduos(Empresa **empresas, DadosResiduos **historico_residuos, Residuo **residuos){
+    int cnpj, id_busca, somaqtdes = 0;
+
+    printf("\nRelatorio de total de residuos por empresa!");
+    printf("\n\n Digite o CNPJ da empresa para a busca: ");
+    scanf("%14d", &cnpj);
+    printf("\nDigite o ID do residuo para a busca: ");
+    scanf("%d", &id_busca);
+
+    Empresa* auxempresa; /** variável auxiliar para percorrer a lista empresas **/
+    Residuo* auxresiduo; /** variável auxiliar para percorrer a lista residuos **/
+    DadosResiduos* auxdados; /** variável auxiliar para percorrer a lista dadosresiduos **/
+
+
+	/*** percorre a lista empresas ***/
+    for(auxempresa = *empresas; auxempresa != NULL; auxempresa = auxempresa->proximo){
+        /*** percorre a lista residuos ***/
+        for(auxresiduo = *residuos; auxresiduo != NULL; auxresiduo = auxresiduo->proximo){
+            /** verifica se CNPJ e ID digitados estao nas listas **/
+            if(auxempresa->CNPJ == cnpj && auxresiduo->id == id_busca){
+
+                printf("\nCNPJ %d e ID %d encontrados com sucesso! Gerando relatorios...", cnpj, id_busca);
+
+                /** percorre a lista encadeada de historico de dados de residuos **/
+                for(auxdados = auxresiduo->historico; auxdados != NULL; auxdados = auxdados->proximo){
+                        /** verifica se o id existe na lista dadosresiduos para nao acumular todas as qtdes rda lista **/
+                        if(auxdados->id_residuos == id_busca){
+
+                            /** acumula as quantidades encontradas na variavel somaqtdes **/
+                            somaqtdes += auxdados->qtde;
+                        }
+                }
+
+                /** imprime relatorio **/
+                printf("\nEmpresa: %s\nCNPJ: %d\nResiduo: %s\nID Residuo: %d\nSoma de quantidades do residuos: %d\n",
+                       auxempresa->nome_legal, auxempresa->CNPJ, auxresiduo->nome, auxresiduo->id, somaqtdes);
+                       break;
+            }else{
+                 /*** termina a funcao se o ID nao for encontrado ***/
+                printf("ID de residuo ou CNPJ nao encontrado! Tente novamente");
+                break;
+            }
+        }
+    }
+    /*** termina a funcao se o CNPJ nao for encontrado ***/
+	printf("CNPJ nao encontrado! Tente novamente");
+    menuprincipal();
 }
 
 /*** funcao para liberar a memoria alocada por Empresa quando nao necessitar mais dela ***/
