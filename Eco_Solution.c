@@ -163,10 +163,19 @@ void cadastrarusuario(){
 
 /*** funcao para menu principal para acessar o sistema ***/
 void menuprincipal(){
-    int opcao = 0, escolha = 0;
+    int opcao = 0;
 
     do{
-        printf("\nSelecione a opcao que deseja acessar: \n1-Cadastrar uma nova empresa \n2-Cadastrar um novo funcionario \n3-Cadastrar novo residuo \n4-Atualizar residuos \n5-Gerar relatorio de total de residuos por empresa \n6-Gerar relatorio de gastos mensais \n7-Localizar regioes mais poluidas \n8-Localizar industrias menos impactam \n9-Sair\n");
+        printf("\nSelecione a opcao que deseja acessar:"
+               "\n1-Cadastrar uma nova empresa"
+               "\n2-Cadastrar um novo funcionario"
+               "\n3-Cadastrar novo residuo"
+               "\n4-Atualizar residuos"
+               "\n5-Gerar relatorio de total de residuos por empresa"
+               "\n6-Gerar relatorio de gastos mensais"
+               "\n7-Localizar regioes mais poluidas"
+               "\n8-Localizar industrias menos impactam"
+               "\n9-Sair\n");
         scanf("%d", &opcao);
 
         /*** verifica qual opcao o usuario escolher ***/
@@ -185,6 +194,9 @@ void menuprincipal(){
             break;
         case 5:
             gerenciarresiduos(&empresas, &historico_residuos, &residuos);
+            break;
+        case 6:
+            gerenciargastos(&empresas, &historico_residuos, &residuos);
             break;
         default:
             printf("\nOpcao invalida. Tente novamente!\n");
@@ -558,8 +570,8 @@ Empresa* gerenciarresiduos(Empresa **empresas, DadosResiduos **historico_residuo
 
                 /** imprime relatorio **/
                 printf("\nEmpresa: %s\nCNPJ: %d\nResiduo: %s\nID Residuo: %d\nSoma de quantidades do residuos: %d\n",
-                       auxempresa->nome_legal, auxempresa->CNPJ, auxresiduo->nome, auxresiduo->id, somaqtdes);
-                       break;
+                auxempresa->nome_legal, auxempresa->CNPJ, auxresiduo->nome, auxresiduo->id, somaqtdes);
+                break;
             }else{
                  /*** termina a funcao se o ID nao for encontrado ***/
                 printf("ID de residuo ou CNPJ nao encontrado! Tente novamente");
@@ -569,6 +581,102 @@ Empresa* gerenciarresiduos(Empresa **empresas, DadosResiduos **historico_residuo
     }
     /*** termina a funcao se o CNPJ nao for encontrado ***/
 	printf("CNPJ nao encontrado! Tente novamente");
+    menuprincipal();
+}
+
+/*** funcao para gerar relatorios de total de gastos no mes e anuais **/
+void gerenciargastos(Empresa **empresas, DadosResiduos **historico_residuos, Residuo **residuos){
+    int num_mes, num_ano, cnpj, opcao;
+    float gastomensal = 0, gastoano = 0;
+
+    Residuo *auxresiduos; /** variável auxiliar para percorrer a lista residuos **/
+    DadosResiduos *auxdados; /** variável auxiliar para percorrer a lista dadosresiduos **/
+    Empresa *auxempresas; /** variável auxiliar para percorrer a lista empresas **/
+
+    printf("\n\nRelatorio de gastos!");
+    printf("\nDigite o CNPJ da empresa para buscar: ");
+    scanf("%d", &cnpj);
+
+    /** percorre a lista empresas **/
+    for(auxempresas = *empresas; auxempresas != NULL; auxempresas = auxempresas->proximo){
+        /** percorre a lista residuos **/
+        for(auxresiduos = *residuos; auxresiduos != NULL; auxresiduos = auxresiduos->proximo){
+            /** verifica se a entrada do usuario existe na lista **/
+            if(auxempresas->CNPJ == cnpj && auxresiduos->CNPJ == cnpj){
+
+                printf("\nCNPJ %d encontrado com sucesso! Gerando relatorios...", cnpj);
+                printf("\n\nEmpresa: %s\nCNPJ: %d", auxempresas->nome_legal, auxempresas->CNPJ);
+
+                printf("\nSelecione a opcao para gerar relatorios: ",
+                       "\n1 - Gastos mensais",
+                       "\n2 - Gastos anuais");
+                scanf("%d", &opcao);
+
+                /** loop para usuario escolher entre gastos mensais ou anuais **/
+                do{
+                    if(opcao == 1){
+                        /** inicializa para cada residuo **/
+                        int somaqtdemes = 0;
+
+                        printf("\nDigite o mes para buscar (MM): ");
+                        scanf("%d", &num_mes);
+
+                        /** percorre a lista de dados residuos **/
+                        for(auxdados = auxresiduos->historico; auxdados != NULL; auxdados = auxdados->proximo){
+                            /** verifica se o mes existe na lista **/
+                            if(auxdados->mes == num_mes){
+                                /** acumula a qtde de acordo com o mes **/
+                                somaqtdemes += auxdados->qtde;
+                            }
+                        }
+
+                        /** calcula o gasto mensal multiplicando a soma de qtde e o valor_custo **/
+                        gastomensal = auxresiduos->valor_custo * somaqtdemes;
+
+                        /** imprime relatorio para cada residuo **/
+                        printf("\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos no mes %d: %d\nCusto por residuo: %.2f\n Gasto mensal: %.2f",
+                        auxresiduos->nome, auxresiduos->id, num_mes, somaqtdemes, auxresiduos->valor_custo, gastomensal);
+
+                    }else if(opcao == 2){
+
+                        /** inicializa para cada residuo **/
+                        int somaqtdano = 0;
+
+                        printf("\nDigite o ano para buscar (AAAA): ");
+                        scanf("%d", &num_ano);
+
+                        /** percorre a lista de dados residuos **/
+                        for(auxdados = auxresiduos->historico; auxdados != NULL; auxdados = auxdados->proximo){
+                            /** verifica se o ano existe na lista **/
+                            if(auxdados->ano == num_ano){
+                                /** acumula a qtde de acordo com o ano **/
+                                somaqtdano += auxdados->qtde;
+                            }
+                        }
+
+                        /** calcula o gasto mensal multiplicando a soma de qtde e o valor_custo **/
+                        gastoano = auxresiduos->valor_custo * somaqtdano;
+
+                        /** imprime relatorio para cada residuo **/
+                        printf("\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos no mes %d: %d\nCusto por residuo: %.2f\n Gasto mensal: %.2f",
+                        auxresiduos->nome, auxresiduos->id, num_ano, somaqtdano, auxresiduos->valor_custo, gastoano);
+
+                    }else{
+
+                        printf("Opcao invalida! Tente novamente");
+                        return;
+                    }
+                }while(opcao != 1 && opcao != 2);
+            }
+        }
+
+        /** funcao termina quando nenhum residuo foi encontrado na lista com o CNPJ cadastrado **/
+        printf("\nNenhum residuo encontrado para o CNPJ %d", cnpj);
+        return;
+    }
+
+    /** funcao termina quando CNPJ nao foi encontrado na lista **/
+    printf("\nNenhuma empresa encontrada para o CNPJ %d", cnpj);
     menuprincipal();
 }
 
@@ -613,7 +721,7 @@ void liberar_dadosresiduos(DadosResiduos *historico_residuos) {
 
 
 void main(){
-    login();
+    menuprincipal();
     liberar_empresas(&empresas);
     liberar_funcionarios(&funcionarios);
     liberar_residuos(&residuos);
