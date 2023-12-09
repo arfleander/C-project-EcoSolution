@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 /*** cria estrutura DadosResiduos para armazenar o historico dos residuos ambientais ***/
 typedef struct dadosresiduos{
@@ -55,6 +56,7 @@ typedef struct empresa{
         int numero;
         char bairro[31];
         char cidade[16];
+        char estado[21];
         char pais[11];
         int mes;
         int ano;
@@ -198,17 +200,19 @@ void menuprincipal(){
         case 6:
             gerenciargastos(&empresas, &historico_residuos, &residuos);
             break;
+        case 7:
+            localizarregioes(&empresas, &historico_residuos, &residuos);
         default:
             printf("\nOpcao invalida. Tente novamente!\n");
             break;
         }
-    }while(opcao < 1 || opcao > 3); //loop ate escolher valor entre 1 e 3
+    }while(opcao < 1 || opcao > 9); //loop ate escolher valor entre 1 e 3
 }
 
 /*** funcao para cadastrar novas empresas ***/
 void insereemp(Empresa **empresas){
 
-    char nomel[31], respon[51], nomef[16], email_emp[41], rua_emp[51], bairro_emp[31], cidade_emp[16], pais_emp[11];
+    char nomel[31], respon[51], nomef[16], email_emp[41], rua_emp[51], bairro_emp[31], cidade_emp[16], estado_emp[21], pais_emp[11];
     int cnpj, numero_emp, mes_emp, ano_emp;
     /*** cria variaveis auxiliares para armazenar os valores ***/
 
@@ -274,6 +278,12 @@ void insereemp(Empresa **empresas){
 
     strncpy(nova_empresa->cidade, cidade_emp, sizeof(nova_empresa->cidade) - 1);
     nova_empresa->cidade[sizeof(nova_empresa->cidade) - 1] = '\0';
+
+    printf("\nEstado: ");
+    scanf("%20s", estado_emp);
+
+    strncpy(nova_empresa->estado, estado_emp, sizeof(nova_empresa->estado) - 1);
+    nova_empresa->estado[sizeof(nova_empresa->estado) - 1] = '\0';
 
     printf("\nPais: ");
     scanf("%10s", pais_emp);
@@ -569,8 +579,8 @@ Empresa* gerenciarresiduos(Empresa **empresas, DadosResiduos **historico_residuo
                 }
 
                 /** imprime relatorio **/
-                printf("\nEmpresa: %s\nCNPJ: %d\nResiduo: %s\nID Residuo: %d\nSoma de quantidades do residuos: %d\n",
-                auxempresa->nome_legal, auxempresa->CNPJ, auxresiduo->nome, auxresiduo->id, somaqtdes);
+                printf("\nEmpresa: %s\nCNPJ: %d\nCidade: %s\nEstado: %s, \nPais: %s\nResiduo: %s\nID Residuo: %d\nSoma de quantidades do residuos: %d\n",
+                auxempresa->nome_legal, auxempresa->CNPJ, auxempresa->cidade, auxempresa->estado, auxempresa->pais, auxresiduo->nome, auxresiduo->id, somaqtdes);
                 break;
             }else{
                  /*** termina a funcao se o ID nao for encontrado ***/
@@ -605,11 +615,13 @@ void gerenciargastos(Empresa **empresas, DadosResiduos **historico_residuos, Res
             if(auxempresas->CNPJ == cnpj && auxresiduos->CNPJ == cnpj){
 
                 printf("\nCNPJ %d encontrado com sucesso! Gerando relatorios...", cnpj);
-                printf("\n\nEmpresa: %s\nCNPJ: %d", auxempresas->nome_legal, auxempresas->CNPJ);
+                printf("\n\nEmpresa: %s\nCNPJ: %d\nCidade: %s\nEstado: %s\nPais: %s",
+                       auxempresas->nome_legal, auxempresas->CNPJ, auxempresas->cidade, auxempresas->estado, auxempresas->pais);
 
                 printf("\nSelecione a opcao para gerar relatorios: ",
                        "\n1 - Gastos mensais",
-                       "\n2 - Gastos anuais");
+                       "\n2 - Gastos anuais",
+                       "\n3 - Voltar ao menu principal");
                 scanf("%d", &opcao);
 
                 /** loop para usuario escolher entre gastos mensais ou anuais **/
@@ -661,12 +673,15 @@ void gerenciargastos(Empresa **empresas, DadosResiduos **historico_residuos, Res
                         printf("\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos no mes %d: %d\nCusto por residuo: %.2f\n Gasto mensal: %.2f",
                         auxresiduos->nome, auxresiduos->id, num_ano, somaqtdano, auxresiduos->valor_custo, gastoano);
 
+                    }else if(opcao == 3){
+                        menuprincipal();
+
                     }else{
 
                         printf("Opcao invalida! Tente novamente");
                         return;
                     }
-                }while(opcao != 1 && opcao != 2);
+                }while(1 < opcao && opcao > 3);
             }
         }
 
@@ -677,6 +692,221 @@ void gerenciargastos(Empresa **empresas, DadosResiduos **historico_residuos, Res
 
     /** funcao termina quando CNPJ nao foi encontrado na lista **/
     printf("\nNenhuma empresa encontrada para o CNPJ %d", cnpj);
+    menuprincipal();
+}
+
+/** funcao que gera relatorios de quantidades de residuos por bairro, cidade, estado e pais **/
+void localizarregioes(Empresa **empresas, DadosResiduos **historico_residuos, Residuo **residuos){
+    char regiao_busca[100];
+    int opcao = 0;
+
+    printf("\n\nGerar relatorio para localizar regioes mais afetadas!");
+
+    Empresa *auxempresas; /** variavel auxiliar para a lista empresas **/
+    Residuo *auxresiduos; /** variavel auxiliar para a lista residuos **/
+    DadosResiduos *auxdados; /** variavel auxiliar para a lista dadosresiduos **/
+
+    /** solicita ao usuario que escolha uma opcao **/
+    printf("\nSelecione por qual regiao deseja buscar: ",
+           "\n1-Bairro",
+           "\n2-Cidade",
+           "\n3-Estado",
+           "\n4-Pais",
+           "\n5-Voltar ao menu principal");
+    scanf("%d", &opcao);
+
+    do{
+        if(opcao == 1){
+            printf("\nInforme o nome do bairro para a busca: ");
+            scanf("%30s", regiao_busca);
+
+            /** variavel que determina se o bairro foi encontrado na lista ou nao **/
+            bool bairro_encontrado = false;
+
+            /** percorre a lista de empresas **/
+            for(auxempresas = *empresas; auxempresas != NULL; auxempresas = auxempresas->proximo){
+                /** verifica se valor digitado existe na lista comparando as strings **/
+                if(strcmp(auxempresas->bairro, regiao_busca) == 0){
+
+                    printf("\nBairro %s encontrado com sucesso! Gerando relatorio...", regiao_busca);
+
+                    float despesas = 0;
+
+                    /** percorre a lista de residuos **/
+                    for(auxresiduos = *residuos; auxresiduos != NULL; auxresiduos = auxresiduos->proximo){
+
+                        int somaqtde = 0;
+
+                        /** percorre a lista de dadosresiduos com base no historico de residuos **/
+                        for(auxdados = auxresiduos->historico; auxdados != NULL; auxdados = auxdados->proximo){
+                            /** acumula a qtde **/
+                            somaqtde += auxdados->qtde;
+                        }
+                     despesas = somaqtde * auxresiduos->valor_custo;
+
+                    /** imprime relatorio de bairro **/
+                    printf("\nEmpresa: %s\nCNPJ: %d\nCidade: %s\nEstado: %s\nPais: %s\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos na regiao: %d\nDespesa por regiao: %.2f",
+                           auxempresas->nome_legal, auxempresas->CNPJ, auxempresas->cidade, auxempresas->estado, auxempresas->pais, auxresiduos->nome, auxresiduos->id, somaqtde, despesas);
+
+                    }
+                    /** seta novo valor para variavel indicando que o bairro foi encontrado na lista **/
+                    bairro_encontrado = true;
+                }
+            }
+
+            /** excecao para caso o valor nao seja encontrado **/
+            if(bairro_encontrado == false){
+                printf("\nNome do bairro incorreto ou nao cadastrado! Tente novamente");
+                return;
+
+            }
+
+        }else if(opcao == 2){
+
+            printf("\nInforme o nome da cidade para a busca: ");
+            scanf("%15s", regiao_busca);
+
+            /** variavel que determina se a cidade foi encontrada na lista ou nao **/
+            bool cidade_encontrada = false;
+
+            /** percorre a lista de empresas **/
+            for(auxempresas = *empresas; auxempresas != NULL; auxempresas = auxempresas->proximo){
+                /** verifica se valor digitado existe na lista comparando as strings **/
+                if(strcmp(auxempresas->cidade, regiao_busca) == 0){
+
+                    printf("\nCidade %s encontrada com sucesso! Gerando relatorio...", regiao_busca);
+
+                    float despesas = 0;
+
+                    /** percorre a lista de residuos **/
+                    for(auxresiduos = *residuos; auxresiduos != NULL; auxresiduos = auxresiduos->proximo){
+
+                        int somaqtde = 0;
+
+                        /** percorre a lista dadosresiduos com base no historico de residuos **/
+                        for(auxdados = auxresiduos->historico; auxdados != NULL; auxdados = auxdados->proximo){
+                            /** acumula a qtde **/
+                            somaqtde += auxdados->qtde;
+                        }
+                     despesas = somaqtde * auxresiduos->valor_custo;
+
+                     /** imprime relatorio de cidade **/
+                     printf("\nEmpresa: %s\nCNPJ: %d\nEstado: %s\nPais: %s\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos na regiao: %d\nDespesa por regiao: %.2f",
+                           auxempresas->nome_legal, auxempresas->CNPJ, auxempresas->estado, auxempresas->pais, auxresiduos->nome, auxresiduos->id, somaqtde, despesas);
+
+                    }
+                    /** seta novo valor para variavel indicando que a cidade foi encontrada na lista **/
+                    cidade_encontrada = true;
+                }
+            }
+
+            /** excecao para caso o valor nao seja encontrado **/
+            if(cidade_encontrada == false){
+                printf("\nNome da cidade incorreto ou nao cadastrado! Tente novamente");
+                return;
+
+            }
+
+        }else if(opcao == 3){
+
+            printf("\nInforme a UF do estado para a busca: ");
+            scanf("%20s", regiao_busca);
+
+            /** variavel que determina se o estado foi encontrado na lista ou nao **/
+            bool estado_encontrado = false;
+
+            /** percorre a lista de empresas **/
+            for(auxempresas = *empresas; auxempresas != NULL; auxempresas = auxempresas->proximo){
+                /** verifica se valor digitado existe na lista comparando as strings **/
+                if(strcmp(auxempresas->estado, regiao_busca) == 0){
+
+                    printf("\nEstado %s encontrado com sucesso! Gerando relatorio...", regiao_busca);
+
+                    float despesas = 0;
+
+                    /** percorre a lista de residuos **/
+                    for(auxresiduos = *residuos; auxresiduos != NULL; auxresiduos = auxresiduos->proximo){
+
+                        int somaqtde = 0;
+
+                        /** percorre a lista dadosresiduos com base no historico de residuos **/
+                        for(auxdados = auxresiduos->historico; auxdados != NULL; auxdados = auxdados->proximo){
+                            /** acumula a qtde **/
+                            somaqtde += auxdados->qtde;
+                        }
+                     despesas = somaqtde * auxresiduos->valor_custo;
+
+                     /** imprime relatorio de estado **/
+                     printf("\nEmpresa: %s\nCNPJ: %d\nPais: %s\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos na regiao: %d\nDespesa por regiao: %.2f",
+                           auxempresas->nome_legal, auxempresas->CNPJ, auxempresas->pais, auxresiduos->nome, auxresiduos->id, somaqtde, despesas);
+
+                    }
+                    /** seta novo valor para variavel indicando que o estado foi encontrado na lista **/
+                    estado_encontrado = true;
+                }
+            }
+
+            /** excecao para caso o valor nao seja encontrado **/
+            if(estado_encontrado == false){
+                printf("\nUF do estado incorreto ou nao cadastrado! Tente novamente");
+                return;
+
+            }
+
+        }else if(opcao == 4){
+            printf("\nInforme o nome do pais para a busca: ");
+            scanf("%10s", regiao_busca);
+
+            /** variavel que determina se o pais foi encontrado na lista ou nao **/
+            bool pais_encontrado = false;
+
+            /** percorre a lista de empresas **/
+            for(auxempresas = *empresas; auxempresas != NULL; auxempresas = auxempresas->proximo){
+                /** verifica se valor digitado existe na lista comparando as strings **/
+                if(strcmp(auxempresas->pais, regiao_busca) == 0){
+
+                    printf("\nPais %s encontrado com sucesso! Gerando relatorio...", regiao_busca);
+
+                    float despesas = 0;
+
+                    /** percorre a lista de residuos **/
+                    for(auxresiduos = *residuos; auxresiduos != NULL; auxresiduos = auxresiduos->proximo){
+
+                        int somaqtde = 0;
+
+                        for(auxdados = auxresiduos->historico; auxdados != NULL; auxdados = auxdados->proximo){
+                            somaqtde += auxdados->qtde;
+                        }
+                     despesas = somaqtde * auxresiduos->valor_custo;
+
+                     /** imprime relatorio de pais **/
+                     printf("\nEmpresa: %s\nCNPJ: %d\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos na regiao: %d\nDespesa por regiao: %.2f",
+                           auxempresas->nome_legal, auxempresas->CNPJ, auxresiduos->nome, auxresiduos->id, somaqtde, despesas);
+
+                    }
+                    /** seta novo valor para variavel indicando que o pais foi encontrado na lista **/
+                    pais_encontrado = true;
+                }
+            }
+
+            /** excecao para caso o valor nao seja encontrado **/
+            if(pais_encontrado == false){
+                printf("\nNome do pais incorreto ou nao cadastrado! Tente novamente");
+                return;
+
+            }
+
+        }else if(opcao == 5){
+            menuprincipal();
+
+        }else{
+            /** excecao para caso usuario digite fora da faixa **/
+            printf("Opcao invalida! Tente novamente");
+            return;
+        }
+    /** loop continua ate usuario digitar valor dentro da faixa **/
+    }while(1 < opcao && opcao < 5);
+
     menuprincipal();
 }
 
