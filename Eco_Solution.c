@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <limits.h>
 
 /*** cria estrutura DadosResiduos para armazenar o historico dos residuos ambientais ***/
 typedef struct dadosresiduos{
@@ -175,8 +176,8 @@ void menuprincipal(){
                "\n4-Atualizar residuos"
                "\n5-Gerar relatorio de total de residuos por empresa"
                "\n6-Gerar relatorio de gastos mensais"
-               "\n7-Localizar regioes mais poluidas"
-               "\n8-Localizar industrias menos impactam"
+               "\n7-Localizar regioes mais afetadas"
+               "\n8-Localizar industrias mais impactam"
                "\n9-Sair\n");
         scanf("%d", &opcao);
 
@@ -202,6 +203,11 @@ void menuprincipal(){
             break;
         case 7:
             localizarregioes(&empresas, &historico_residuos, &residuos);
+        case 8:
+            localizarindustrias(&empresas, &historico_residuos, &residuos);
+        case 9:
+            printf("Encerramento do sistema. Ate mais!");
+            break;
         default:
             printf("\nOpcao invalida. Tente novamente!\n");
             break;
@@ -910,6 +916,77 @@ void localizarregioes(Empresa **empresas, DadosResiduos **historico_residuos, Re
     menuprincipal();
 }
 
+/** funcao que ordena e imprime lista de industrias que mais geram residuos **/
+void localizarindustrias(Empresa **empresas, DadosResiduos **historico_residuos, Residuo **residuos){
+    int menorqtde = INT_MAX; /** inicializando com um valor grande **/
+    Empresa *menorimpacto = NULL; /** variavel vazia para referenciar Empresa **/
+    Residuo *residuomenorimpacto = NULL; /** variavel vazia para referenciar Residuo **/
+
+    printf("\n\nLocalizar industrias que menos impactam!");
+
+    Residuo *auxresiduos;
+    DadosResiduos *auxdados;
+    Empresa *auxempresas;
+
+    /** loop para percorrer a lista de empresas **/
+    for(auxempresas = *empresas; auxempresas != NULL; auxempresas = auxempresas->proximo){
+        /** loop para percorrer a lista de empresas novamente com temp**/
+        for(Empresa *temp = *empresas; temp != NULL; temp = temp->proximo){
+            /** inicializa variaveis para posteriormente fazer comparacoes **/
+            int cnpj1 = auxempresas->CNPJ, cnpj2 = temp->CNPJ;
+            int somaqtde1 = 0, somaqtde2 = 0;
+
+            /** loop para percorrer a lista de residuos **/
+            for(auxresiduos = *residuos; auxresiduos != NULL; auxresiduos = auxresiduos->proximo){
+                if (auxresiduos->CNPJ == cnpj1){
+                    /** loop para percorrer a lista de dadosresiduos associada ao resíduo atual **/
+                    for(auxdados = auxresiduos->historico; auxdados != NULL; auxdados = auxdados->proximo){
+                        somaqtde1 += auxdados->qtde; /** acumula a quantidade de resíduos **/
+                    }
+                }
+
+                if (auxresiduos->CNPJ == cnpj2){
+                    /** loop para percorrer a lista de dadosresiduos associada ao resíduo atual **/
+                    for(auxdados = auxresiduos->historico; auxdados != NULL; auxdados = auxdados->proximo){
+                        somaqtde2 += auxdados->qtde; /** acumula a quantidade de resíduos **/
+                    }
+                }
+            }
+            /** troca as posicoes se a quantidade de residuos for menor **/
+            if(somaqtde1 < somaqtde2){
+                int tempCNPJ = auxempresas->CNPJ;
+                auxempresas->CNPJ = temp->CNPJ;
+                temp->CNPJ = tempCNPJ;
+            }
+        }
+    }
+
+    /** imprime o relatório ordenado **/
+    for(auxempresas = *empresas; auxempresas != NULL; auxempresas = auxempresas->proximo){
+        int cnpj = auxempresas->CNPJ;
+        int somaqtde = 0;
+
+        printf("\nIndustrias localizadas! Gerando relatorio...");
+
+        for(auxresiduos = *residuos; auxresiduos != NULL; auxresiduos = auxresiduos->proximo){
+            if (auxresiduos->CNPJ == cnpj){
+                residuomenorimpacto = auxresiduos;
+
+                for(auxdados = auxresiduos->historico; auxdados != NULL; auxdados = auxdados->proximo){
+                    somaqtde += auxdados->qtde;
+                }
+            }
+        }
+
+        printf("\nEmpresa: %s\nCNPJ: %d\nCidade: %s\nEstado: %s\nPais: %s\nResiduo: %s\nQuantidade de residuos: %d",
+               auxempresas->nome_legal, auxempresas->CNPJ, auxempresas->cidade, auxempresas->estado, auxempresas->pais, residuomenorimpacto->nome, somaqtde);
+    }
+
+    if(*empresas == NULL){
+        printf("\nNenhuma industria encontrada");
+    }
+}
+
 /*** funcao para liberar a memoria alocada por Empresa quando nao necessitar mais dela ***/
 void liberar_empresas(Empresa *empresas) {
     while (empresas != NULL) {
@@ -951,9 +1028,10 @@ void liberar_dadosresiduos(DadosResiduos *historico_residuos) {
 
 
 void main(){
-    menuprincipal();
+    login();
     liberar_empresas(&empresas);
     liberar_funcionarios(&funcionarios);
     liberar_residuos(&residuos);
     liberar_dadosresiduos(&historico_residuos);
+
 }
