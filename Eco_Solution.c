@@ -78,6 +78,9 @@ Residuo* residuos = NULL;
 /*** inicializa a estrutura DadosResiduos vazia ***/
 DadosResiduos* historico_residuos = NULL;
 
+/** declaracao do ponteiro de arquivo **/
+FILE *arquivo;
+
 /** prototipo para a funcao atualizaresiduo ***/
 Residuo* atualizaresiduo(Residuo **residuos, DadosResiduos **historico_residuos);
 
@@ -552,10 +555,19 @@ Residuo* atualizaresiduo(Residuo **residuos, DadosResiduos **historico_residuos)
 
 /** funcao para gerar relatorios de total de residuos por empresa e ID **/
 Empresa* gerenciarresiduos(Empresa **empresas, DadosResiduos **historico_residuos, Residuo **residuos){
+    /** abre o arquivo para escrita, cria o arquivo se nao existir **/
+    arquivo = fopen("Gerenciar residuos.txt","w");
+
+    if(arquivo == NULL){
+        printf("\nErro ao abrir o arquivo!");
+        return;
+    }
+
+
     int cnpj, id_busca, somaqtdes = 0;
 
-    printf("\nRelatorio de total de residuos por empresa!");
-    printf("\n\n Digite o CNPJ da empresa para a busca: ");
+    fprint(arquivo, "\n\nRelatorio de total de residuos por empresa!");
+    printf("\nDigite o CNPJ da empresa para a busca: ");
     scanf("%14d", &cnpj);
     printf("\nDigite o ID do residuo para a busca: ");
     scanf("%d", &id_busca);
@@ -585,7 +597,7 @@ Empresa* gerenciarresiduos(Empresa **empresas, DadosResiduos **historico_residuo
                 }
 
                 /** imprime relatorio **/
-                printf("\nEmpresa: %s\nCNPJ: %d\nCidade: %s\nEstado: %s, \nPais: %s\nResiduo: %s\nID Residuo: %d\nSoma de quantidades do residuos: %d\n",
+                fprint(arquivo, "\nEmpresa: %s\nCNPJ: %d\nCidade: %s\nEstado: %s, \nPais: %s\nResiduo: %s\nID Residuo: %d\nSoma de quantidades do residuos: %d\n",
                 auxempresa->nome_legal, auxempresa->CNPJ, auxempresa->cidade, auxempresa->estado, auxempresa->pais, auxresiduo->nome, auxresiduo->id, somaqtdes);
                 break;
             }else{
@@ -595,6 +607,10 @@ Empresa* gerenciarresiduos(Empresa **empresas, DadosResiduos **historico_residuo
             }
         }
     }
+
+    /** fecha o arquivo apos a escrita **/
+    fclose(arquivo);
+
     /*** termina a funcao se o CNPJ nao for encontrado ***/
 	printf("CNPJ nao encontrado! Tente novamente");
     menuprincipal();
@@ -602,6 +618,14 @@ Empresa* gerenciarresiduos(Empresa **empresas, DadosResiduos **historico_residuo
 
 /*** funcao para gerar relatorios de total de gastos no mes e anuais **/
 void gerenciargastos(Empresa **empresas, DadosResiduos **historico_residuos, Residuo **residuos){
+    /** abre o arquivo para escrita, cria o arquivo se nao existir **/
+    arquivo = fopen("Gerenciar gastos.txt","w");
+
+    if(arquivo == NULL){
+        printf("\nErro ao abrir o arquivo!");
+        return;
+    }
+
     int num_mes, num_ano, cnpj, opcao;
     float gastomensal = 0, gastoano = 0;
 
@@ -609,7 +633,7 @@ void gerenciargastos(Empresa **empresas, DadosResiduos **historico_residuos, Res
     DadosResiduos *auxdados; /** variável auxiliar para percorrer a lista dadosresiduos **/
     Empresa *auxempresas; /** variável auxiliar para percorrer a lista empresas **/
 
-    printf("\n\nRelatorio de gastos!");
+    fprint(arquivo, "\n\nRelatorio de gastos!");
     printf("\nDigite o CNPJ da empresa para buscar: ");
     scanf("%d", &cnpj);
 
@@ -621,7 +645,7 @@ void gerenciargastos(Empresa **empresas, DadosResiduos **historico_residuos, Res
             if(auxempresas->CNPJ == cnpj && auxresiduos->CNPJ == cnpj){
 
                 printf("\nCNPJ %d encontrado com sucesso! Gerando relatorios...", cnpj);
-                printf("\n\nEmpresa: %s\nCNPJ: %d\nCidade: %s\nEstado: %s\nPais: %s",
+                fprint(arquivo, "\n\nEmpresa: %s\nCNPJ: %d\nCidade: %s\nEstado: %s\nPais: %s",
                        auxempresas->nome_legal, auxempresas->CNPJ, auxempresas->cidade, auxempresas->estado, auxempresas->pais);
 
                 printf("\nSelecione a opcao para gerar relatorios: ",
@@ -652,7 +676,7 @@ void gerenciargastos(Empresa **empresas, DadosResiduos **historico_residuos, Res
                         gastomensal = auxresiduos->valor_custo * somaqtdemes;
 
                         /** imprime relatorio para cada residuo **/
-                        printf("\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos no mes %d: %d\nCusto por residuo: %.2f\n Gasto mensal: %.2f",
+                        fprint(arquivo, "\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos no mes %d: %d\nCusto por residuo: %.2f\n Gasto mensal: %.2f",
                         auxresiduos->nome, auxresiduos->id, num_mes, somaqtdemes, auxresiduos->valor_custo, gastomensal);
 
                     }else if(opcao == 2){
@@ -676,7 +700,7 @@ void gerenciargastos(Empresa **empresas, DadosResiduos **historico_residuos, Res
                         gastoano = auxresiduos->valor_custo * somaqtdano;
 
                         /** imprime relatorio para cada residuo **/
-                        printf("\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos no mes %d: %d\nCusto por residuo: %.2f\n Gasto mensal: %.2f",
+                        fprint(arquivo, "\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos no mes %d: %d\nCusto por residuo: %.2f\n Gasto mensal: %.2f",
                         auxresiduos->nome, auxresiduos->id, num_ano, somaqtdano, auxresiduos->valor_custo, gastoano);
 
                     }else if(opcao == 3){
@@ -691,10 +715,14 @@ void gerenciargastos(Empresa **empresas, DadosResiduos **historico_residuos, Res
             }
         }
 
+
         /** funcao termina quando nenhum residuo foi encontrado na lista com o CNPJ cadastrado **/
         printf("\nNenhum residuo encontrado para o CNPJ %d", cnpj);
         return;
     }
+
+    /** fecha o arquivo apos a escrita **/
+    fclose(arquivo);
 
     /** funcao termina quando CNPJ nao foi encontrado na lista **/
     printf("\nNenhuma empresa encontrada para o CNPJ %d", cnpj);
@@ -703,10 +731,18 @@ void gerenciargastos(Empresa **empresas, DadosResiduos **historico_residuos, Res
 
 /** funcao que gera relatorios de quantidades de residuos por bairro, cidade, estado e pais **/
 void localizarregioes(Empresa **empresas, DadosResiduos **historico_residuos, Residuo **residuos){
+    /** abre o arquivo para escrita, cria o arquivo se nao existir **/
+    arquivo = fopen("Localizar regioes.txt","w");
+
+    if(arquivo == NULL){
+        printf("\nErro ao abrir o arquivo!");
+        return;
+    }
+
     char regiao_busca[100];
     int opcao = 0;
 
-    printf("\n\nGerar relatorio para localizar regioes mais afetadas!");
+    fprintf(arquivo, "\n\nGerar relatorio para localizar regioes mais afetadas!");
 
     Empresa *auxempresas; /** variavel auxiliar para a lista empresas **/
     Residuo *auxresiduos; /** variavel auxiliar para a lista residuos **/
@@ -751,7 +787,7 @@ void localizarregioes(Empresa **empresas, DadosResiduos **historico_residuos, Re
                      despesas = somaqtde * auxresiduos->valor_custo;
 
                     /** imprime relatorio de bairro **/
-                    printf("\nEmpresa: %s\nCNPJ: %d\nCidade: %s\nEstado: %s\nPais: %s\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos na regiao: %d\nDespesa por regiao: %.2f",
+                    fprintf(arquivo, "\nEmpresa: %s\nCNPJ: %d\nCidade: %s\nEstado: %s\nPais: %s\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos na regiao: %d\nDespesa por regiao: %.2f",
                            auxempresas->nome_legal, auxempresas->CNPJ, auxempresas->cidade, auxempresas->estado, auxempresas->pais, auxresiduos->nome, auxresiduos->id, somaqtde, despesas);
 
                     }
@@ -797,7 +833,7 @@ void localizarregioes(Empresa **empresas, DadosResiduos **historico_residuos, Re
                      despesas = somaqtde * auxresiduos->valor_custo;
 
                      /** imprime relatorio de cidade **/
-                     printf("\nEmpresa: %s\nCNPJ: %d\nEstado: %s\nPais: %s\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos na regiao: %d\nDespesa por regiao: %.2f",
+                     fprintf(arquivo, "\nEmpresa: %s\nCNPJ: %d\nEstado: %s\nPais: %s\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos na regiao: %d\nDespesa por regiao: %.2f",
                            auxempresas->nome_legal, auxempresas->CNPJ, auxempresas->estado, auxempresas->pais, auxresiduos->nome, auxresiduos->id, somaqtde, despesas);
 
                     }
@@ -843,7 +879,7 @@ void localizarregioes(Empresa **empresas, DadosResiduos **historico_residuos, Re
                      despesas = somaqtde * auxresiduos->valor_custo;
 
                      /** imprime relatorio de estado **/
-                     printf("\nEmpresa: %s\nCNPJ: %d\nPais: %s\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos na regiao: %d\nDespesa por regiao: %.2f",
+                     fprintf(arquivo, "\nEmpresa: %s\nCNPJ: %d\nPais: %s\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos na regiao: %d\nDespesa por regiao: %.2f",
                            auxempresas->nome_legal, auxempresas->CNPJ, auxempresas->pais, auxresiduos->nome, auxresiduos->id, somaqtde, despesas);
 
                     }
@@ -886,7 +922,7 @@ void localizarregioes(Empresa **empresas, DadosResiduos **historico_residuos, Re
                      despesas = somaqtde * auxresiduos->valor_custo;
 
                      /** imprime relatorio de pais **/
-                     printf("\nEmpresa: %s\nCNPJ: %d\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos na regiao: %d\nDespesa por regiao: %.2f",
+                     fprintf(arquivo, "\nEmpresa: %s\nCNPJ: %d\nResiduo: %s\nID Residuo: %d\nQuantidades de residuos na regiao: %d\nDespesa por regiao: %.2f",
                            auxempresas->nome_legal, auxempresas->CNPJ, auxresiduos->nome, auxresiduos->id, somaqtde, despesas);
 
                     }
@@ -913,16 +949,28 @@ void localizarregioes(Empresa **empresas, DadosResiduos **historico_residuos, Re
     /** loop continua ate usuario digitar valor dentro da faixa **/
     }while(1 < opcao && opcao < 5);
 
+    /** fecha o arquivo apos a escrita **/
+    fclose(arquivo);
+
     menuprincipal();
 }
 
 /** funcao que ordena e imprime lista de industrias que mais geram residuos **/
 void localizarindustrias(Empresa **empresas, DadosResiduos **historico_residuos, Residuo **residuos){
+
+    /** abre o arquivo para escrita, cria o arquivo se nao existir **/
+    arquivo = fopen("Localizar industrias.txt","w");
+
+    if(arquivo == NULL){
+        printf("\nErro ao abrir o arquivo!");
+        return;
+    }
+
     int menorqtde = INT_MAX; /** inicializando com um valor grande **/
     Empresa *menorimpacto = NULL; /** variavel vazia para referenciar Empresa **/
     Residuo *residuomenorimpacto = NULL; /** variavel vazia para referenciar Residuo **/
 
-    printf("\n\nLocalizar industrias que menos impactam!");
+    fprintf(arquivo, "\n\nRelatorio para localizar industrias que menos impactam!");
 
     Residuo *auxresiduos;
     DadosResiduos *auxdados;
@@ -966,7 +1014,7 @@ void localizarindustrias(Empresa **empresas, DadosResiduos **historico_residuos,
         int cnpj = auxempresas->CNPJ;
         int somaqtde = 0;
 
-        printf("\nIndustrias localizadas! Gerando relatorio...");
+        fprintf(arquivo, "\nIndustrias localizadas! Gerando relatorio...");
 
         for(auxresiduos = *residuos; auxresiduos != NULL; auxresiduos = auxresiduos->proximo){
             if (auxresiduos->CNPJ == cnpj){
@@ -978,13 +1026,16 @@ void localizarindustrias(Empresa **empresas, DadosResiduos **historico_residuos,
             }
         }
 
-        printf("\nEmpresa: %s\nCNPJ: %d\nCidade: %s\nEstado: %s\nPais: %s\nResiduo: %s\nQuantidade de residuos: %d",
+        fprintf(arquivo, "\nEmpresa: %s\nCNPJ: %d\nCidade: %s\nEstado: %s\nPais: %s\nResiduo: %s\nQuantidade de residuos: %d",
                auxempresas->nome_legal, auxempresas->CNPJ, auxempresas->cidade, auxempresas->estado, auxempresas->pais, residuomenorimpacto->nome, somaqtde);
     }
 
     if(*empresas == NULL){
-        printf("\nNenhuma industria encontrada");
+        fprintf(arquivo, "\nNenhuma industria encontrada");
     }
+
+    /** fecha o arquivo apos a escrita **/
+    fclose(arquivo);
 }
 
 /*** funcao para liberar a memoria alocada por Empresa quando nao necessitar mais dela ***/
