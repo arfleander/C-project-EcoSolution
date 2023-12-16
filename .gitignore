@@ -1,3 +1,16 @@
+#Estructures and Models 
+*.jpg
+
+#Code Blocks Project 
+*.cbp
+*.depend
+*.layout
+
+#Additional Folders
+.bin/*
+.obj/*
+.output/*
+
 # Prerequisites
 *.d
 
