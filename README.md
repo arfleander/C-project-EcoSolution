@@ -40,10 +40,10 @@ Pré-requisitos: CodeBlocks
 # clonar repositório
 git clone https://github.com/arfleander/dowloads/code blocks
 
-# entrar na pasta dowloads e depois em code blocks
-cd dowloads/code blocks
+# entrar no site e baixar a IDE
+https://www.codeblocks.org/downloads/binaries/
 
-# instalar ide executando o arquivo
+# instalar IDE executando o arquivo
 .codeblocks-20.03mingw-setup.exe
 
 ```
