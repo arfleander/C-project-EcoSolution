@@ -66,6 +66,7 @@ typedef struct empresa{
         struct empresa *proximo;
 }Empresa;
 
+
 /*** inicializa a estrutura Empresa vazia ***/
 Empresa* empresas = NULL;
 
@@ -80,6 +81,7 @@ DadosResiduos* historico_residuos = NULL;
 
 /** declaracao do ponteiro de arquivo **/
 FILE *arquivo;
+
 
 /** prototipo para a funcao atualizaresiduo ***/
 Residuo* atualizaresiduo(Residuo **residuos, DadosResiduos **historico_residuos);
@@ -96,10 +98,10 @@ void login(){
         printf("\nPossui login cadastrado? (S/N)\n");
         scanf(" %c", &autent);
 
-        /*transforma o caractere em maiúsculo*/
+        /** transforma o caractere em maiúsculo **/
         autent = toupper(autent);
 
-        /*verifica a reposta do usuario*/
+        /** verifica a reposta do usuario **/
         if(autent == 'S'){
             usuariocadastrado();
 
@@ -109,7 +111,7 @@ void login(){
         }else{
             printf("\nResposta invalida! Tente novamente.\n");
         }
-    }while(autent != 'S' && autent != 'N');
+    }while(autent != 'S' && autent != 'N'); /** ate que usuario responda S ou N **/
 }
 
 /*** funcao para usuario ja cadastrado entrar no sistema ***/
@@ -120,10 +122,12 @@ void usuariocadastrado(char* novo_user,  char* nova_senha){
         printf("\nInforme o seu usuario (max 30): ");
         scanf("%30s", user);
 
+        /** verifica se usuario ja cadastrou um nome no sistema **/
         if(strcmp(user, novo_user) == 0){
             printf("\nDigite sua senha (max 20): ");
             scanf("%20s", senha);
 
+            /** verifica se usuario ja cadastrou uma senha no sistema **/
             if(strcmp(senha, nova_senha) == 0 && senha != ""){
                 printf("\n\nOla %s. Bem-vindo ao menu inicial da Eco Solution!\n", user);
                 menuprincipal();
@@ -136,7 +140,7 @@ void usuariocadastrado(char* novo_user,  char* nova_senha){
             printf("\nUsuario incorreto. Tente novamente!");
 
         }
-    }while(1);
+    }while(1); /** loop infinito ate que as senhas e nome coincidem **/
 }
 
 /*** funcao para cadastrar novo usuario ***/
@@ -147,11 +151,13 @@ void cadastrarusuario(){
     scanf("%30s", novo_user);
 
     do{
+        /** verifica que nome de usuario nao esta vazio **/
         if(strlen(novo_user) != 0){
 
             printf("\nDigite uma senha (maximo de 20 caracteres): ");
             scanf("%20s", nova_senha);
 
+            /** verifica se senha nao esta vazio **/
             if(strlen(nova_senha) != 0){
 
                 printf("\nUsuario criado com sucesso!\n");
@@ -162,7 +168,7 @@ void cadastrarusuario(){
         }else{
             printf("\nUsuario invalido. Tente Novamente!");
         }
-    }while(strlen(novo_user) != 0 && strlen(nova_senha) != 0);
+    }while(strlen(novo_user) != 0 && strlen(nova_senha) != 0); /** loop ate que senha e nome de usuario forem diferentes de vazio **/
 
     usuariocadastrado(novo_user, nova_senha);
 }
@@ -215,7 +221,7 @@ void menuprincipal(){
             printf("\nOpcao invalida. Tente novamente!\n");
             break;
         }
-    }while(opcao < 1 || opcao > 9); //loop ate escolher valor entre 1 e 3
+    }while(opcao < 1 || opcao > 9); /** loop ate escolher valor na faixa permitida **/
 }
 
 /*** funcao para cadastrar novas empresas ***/
@@ -955,7 +961,7 @@ void localizarregioes(Empresa **empresas, DadosResiduos **historico_residuos, Re
     menuprincipal();
 }
 
-/** funcao que ordena e imprime lista de industrias que mais geram residuos **/
+/** funcao que ordena e imprime lista de industrias que menos geram residuos **/
 void localizarindustrias(Empresa **empresas, DadosResiduos **historico_residuos, Residuo **residuos){
 
     /** abre o arquivo para escrita, cria o arquivo se nao existir **/
