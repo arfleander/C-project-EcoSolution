@@ -34,19 +34,6 @@ Além disso, o sistema conta com funções adicionais em que quando não se util
 
 # Como executar o projeto
 
-Pré-requisitos: C
-
-```bash
-# clonar repositório
-git clone https://github.com/arfleander/dowloads/mingw
-
-# entrar na pasta do projeto dowloads e depois em mingw
-cd dowloads/mingw
-
-# executar o arquivo
-.mingw-w64-install.exe
-```
-
 Pré-requisitos: CodeBlocks
 
 ```bash
